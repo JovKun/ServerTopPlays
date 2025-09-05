@@ -21,7 +21,7 @@ This is a Discord bot with the sole purpose of announcing the top osu! plays of 
 |      **Files**         |      **What it does**      |
 | :----------------: | :--------------------: |
 |      bot.py        | Main script for the bot |
-|      config.json   | Stores data and important information |
+|      config.json   | Stores data and important information (hidden) |
 |      README.md     | This file |
 |      changelog.md  | Markdown file for logging changes and versions |
 
