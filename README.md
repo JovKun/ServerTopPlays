@@ -16,7 +16,7 @@ This is a Discord bot with the sole purpose of announcing the top osu! plays of 
 |      **Listeners**      |      **What it does**      |
 | :----------------: | :--------------------: |
 |      /check_top_plays | Listens for top plays submitted by registered users |
-|      /check_new_beatmaps | Listens for new beatmaps submitted or updated by registered mapeprs |
+|      /check_new_beatmaps | Listens for new beatmaps submitted or updated by registered mappers |
 
 |      **Files**         |      **What it does**      |
 | :----------------: | :--------------------: |
