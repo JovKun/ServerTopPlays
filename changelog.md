@@ -3,10 +3,10 @@ Official markdown file to log any changes and/or updates.
 Versions will be listed in reverse chronological order (latest version at the top)
 
 ## Version 4.0
-- Finally made changes to hid config file from Git in order to make the GitHub repository public
+- Added a `.gitignore` file to ignore `config.json`, which had sensitive information. This change made it possible to make this GitHub repository public instead of private
 
 ## Version 3.4
-- Recalled calculating star rating for plays with mods
+- Recalled calculating star rating for plays with mods since the osu! API doesn't support star rating calculation for mods
 - Simplified event looper
 
 ## Version 3.3
