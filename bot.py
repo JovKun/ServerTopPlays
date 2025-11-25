@@ -1,7 +1,7 @@
 # Description: A Discord bot that detects whenever a registered osu! user submits a play within their top 10 plays.
 # The bot will then send an embed message to a specified channel with the details of the play.
 #
-# Author: nnull.
+# Author: nnull. (Jovian Kuntjoro)
 # Date: 2025-01-18
 
 #################
@@ -21,6 +21,10 @@ import datetime
 
 # For reading the config file
 import json
+
+# Keep the bot alive
+from keep_alive import keep_alive
+keep_alive()
 
 # Intents are required to access certain events
 intents = discord.Intents.default()
