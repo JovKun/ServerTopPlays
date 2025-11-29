@@ -14,17 +14,13 @@ from discord import app_commands
 from discord.ext import tasks
 
 # For osu! API
-from osu import Client
+from osu import AsynchronousClient
 
 # For keeping track of time
 import datetime
 
 # For reading the config file
 import json
-
-# Keep the bot alive
-from keep_alive import keep_alive
-keep_alive()
 
 # Intents are required to access certain events
 intents = discord.Intents.default()
@@ -35,25 +31,25 @@ with open('config.json') as f:
     config = json.load(f)
 
 # Create a new client for discord
-client = discord.Client(intents=intents)
+discord_client = discord.Client(intents=intents)
 
-# Create a new osu! client
-osu_client = Client.from_credentials(config['osu']['client_id'], config['osu']['client_secret'], None)
+# Create a new osu! asynchronous client
+osu_client = AsynchronousClient.from_credentials(config['osu']['client_id'], config['osu']['client_secret'], redirect_url=None, request_wait_time=0)
 
 # Create a new command tree
-tree = app_commands.CommandTree(client)
+tree = app_commands.CommandTree(discord_client)
 
 # Event that triggers when the bot is ready
-@client.event
+@discord_client.event
 async def on_ready():
-    print(f'Logged in as {client.user}')
+    print(f'Logged in as {discord_client.user}')
 
     # Sync the command tree
     await tree.sync(guild = discord.Object(id = config['discord']['guild_id']))
     print("Synced!")
 
     # Create playing status to osu!
-    await client.change_presence(activity = discord.Game(name = "osu!"))
+    await discord_client.change_presence(activity = discord.Game(name = "osu!"))
 
     # Start the event looper
     event_looper.start()
@@ -66,8 +62,8 @@ async def event_looper():
     current_time = datetime.datetime.now(datetime.timezone.utc)
 
     # Check for new beatmaps and top plays
-    await client.loop.run_in_executor(None, check_new_beatmaps)
-    await client.loop.run_in_executor(None, check_top_plays)
+    await check_new_beatmaps()
+    await check_top_plays()
 
     # Write the current time to the config file to store as a "last checked" time
     config["last_checked"] = current_time.timestamp()
@@ -80,10 +76,10 @@ async def event_looper():
         json.dump(config, f, indent=4, sort_keys=True, separators=(',', ': '))
 
 # Event that triggers when a message is sent
-@client.event
+@discord_client.event
 async def on_message(message):
-    if message.content.startswith('hello'):
-        await message.channel.send('Hello!')
+    if message.content.startswith('pp'):
+        await message.channel.send('pp for the pp god')
 
 #################
 ### FUNCTIONS ###
@@ -91,7 +87,7 @@ async def on_message(message):
 
 ### CHECK_NEW_BEATMAPS FUNCTION ###
 # Event listener to check whether a user has submitted a new beatmap
-def check_new_beatmaps():
+async def check_new_beatmaps():
 
     # Check if this is getting run
     print("Checking new beatmaps...")
@@ -99,14 +95,14 @@ def check_new_beatmaps():
     # Get the new beatmaps of each user
     for mapper in config['users']['mappers']:
 
+        # Get the current_mapper
+        current_mapper = config['users']['mappers'][mapper]
+
         # Debug
         print(f"Checking {mapper}'s new beatmaps...")
 
-        # Get the user
-        current_mapper = osu_client.get_user(mapper)
-
         # Get the user_beatmaps
-        user_beatmapsets = osu_client.get_user_beatmaps(current_mapper.id, type = "pending", limit = 3)
+        user_beatmapsets = await osu_client.get_user_beatmaps(current_mapper, type = "pending", limit = 3)
 
         # Check if any of the user_beatmaps are made
         for beatmapset in user_beatmapsets:
@@ -159,34 +155,34 @@ def check_new_beatmaps():
                 embed.set_thumbnail(url = current_mapper.avatar_url)
 
                 # Add thumbnail to show the beatmap background
-                embed.set_image(url = f"{beatmapset.background_url}")
+                embed.set_image(url = f"https://assets.ppy.sh/beatmaps/{beatmapset.id}/covers/card.jpg")
 
                 # Send the embed message to the specified channel
-                channel = client.get_channel(config['discord']['beatmap_channel_id'])
-                client.loop.create_task(channel.send(embed = embed))
+                channel = discord_client.get_channel(config['discord']['beatmap_channel_id'])
+                await channel.send(embed = embed)
 
     print("Finished checking new beatmaps...")
 
 ### CHECK_TOP_PLAYS FUNCTION ###
 # Event listener to check whether a user has submitted a new top 10 play
-def check_top_plays():
+async def check_top_plays():
 
     # Check if this is getting run
     print("Checking top plays...")
 
     # Get the top 10 plays of each user
     for user in config['users']['players']:
+        
+        # Get the user
+        current_user = config['users']['players'][user]
 
         # Debug
         print(f"Checking {user}'s top plays...")
-        
-        # Get the user
-        current_user = osu_client.get_user(user)
 
-        # Get the user_scores
-        user_scores = osu_client.get_user_scores(current_user.id, type = "best", mode = "osu", limit = 10)
+        # Get top 10 plays of the user
+        user_scores = await osu_client.get_user_scores(current_user, type = "best", mode = "osu", limit = 10)
 
-        # Check if any of the user_scores are made
+        # Check if any of the user_scores are in the top 10
         for ind, score in enumerate(user_scores):
 
             # Get the time the play was made
@@ -240,7 +236,7 @@ def check_top_plays():
                 star_rate = round(score.beatmap.difficulty_rating, 2)
 
                 # Get the max combo of the beatmap
-                user_beatmap = osu_client.get_beatmap(score.beatmap_id)
+                user_beatmap = await osu_client.get_beatmap(score.beatmap_id)
                 beatmap_max_combo = user_beatmap.max_combo
 
                 # Get the miss count of the score
@@ -260,11 +256,11 @@ def check_top_plays():
                 )
 
                 # Add thumbnail to show the beatmap background
-                embed.set_image(url = f"https://assets.ppy.sh/beatmaps/{score.beatmapset.id}/covers/raw.jpg")
+                embed.set_image(url = f"https://assets.ppy.sh/beatmaps/{score.beatmapset.id}/covers/card.jpg")
 
                 # Send the embed message to the specified channel
-                channel = client.get_channel(config['discord']['announcement_channel_id'])
-                client.loop.create_task(channel.send(embed = embed))
+                channel = discord_client.get_channel(config['discord']['announcement_channel_id'])
+                await channel.send(embed = embed)
 
     print("Finished checking top plays...")
 
@@ -288,7 +284,7 @@ async def top(inter, user: str):
     await inter.response.defer()
 
     # Get the user
-    current_user = osu_client.get_user(user)
+    current_user = await osu_client.get_user(user)
 
     # Check if the user exists
     if current_user is None:
@@ -308,13 +304,9 @@ async def top(inter, user: str):
     embed.set_thumbnail(url = current_user.avatar_url)
 
     # Get the user_scores
-    user_scores = osu_client.get_user_scores(current_user.id, type = "best", mode = "osu", limit = 10)
-
-    # Get all the beatmaps of the user_scores
-    user_beatmaps = osu_client.get_beatmaps([score.beatmap_id for score in user_scores])
-
-    # Get the max combos of the beatmaps
-    beatmap_max_combos = {beatmap.id: beatmap.max_combo for beatmap in user_beatmaps}
+    user_scores = await osu_client.get_user_scores(current_user.id, type = "best", mode = "osu", limit = 10)
+    user_score_beatmaps = await osu_client.get_beatmaps([score.beatmap_id for score in user_scores])
+    user_score_max_combos = {beatmap.id: beatmap.max_combo for beatmap in user_score_beatmaps}
 
     # Add the fields to the embed
     for ind, score in enumerate(user_scores):
@@ -357,7 +349,7 @@ async def top(inter, user: str):
         # Add the field to the embed
         embed.add_field(
             name="\u200b",
-            value=f"#{ind + 1} - **[{score.beatmapset.title} [{score.beatmap.version}]]({score.beatmap.url})** [{star_rate}★]\n{user_rank} **{user_pp}pp** ({user_accuracy}%) [**{score.max_combo}x**/{beatmap_max_combos[score.beatmap_id]}x] {count_miss} \n+**{user_mods}** <t:{int(score.ended_at.timestamp())}:R>",
+            value=f"#{ind + 1} - **[{score.beatmapset.title} [{score.beatmap.version}]]({score.beatmap.url})** [{star_rate}★]\n{user_rank} **{user_pp}pp** ({user_accuracy}%) [**{score.max_combo}x**/{user_score_max_combos[score.beatmap_id]}x] {count_miss} \n+**{user_mods}** <t:{int(score.ended_at.timestamp())}:R>",
             inline=False
         )
 
@@ -377,11 +369,11 @@ async def top(inter, user: str):
 async def register(inter, user: str):
 
     # Get the user
-    current_user = osu_client.get_user(user)
+    current_user = await osu_client.get_user(user)
 
     # Check if the user exists
     if current_user is None:
-        await inter.response.send_message("User not found!")
+        await inter.response.send_message("User is not an osu! user!")
         return
     
     # Check if the user is already registered
@@ -390,7 +382,7 @@ async def register(inter, user: str):
         return
     
     # Add the user to the database (the config file)
-    config['users']['players'].append(user)
+    config['users']['players'][user] = current_user.id
 
     # Save the changes to the config file
     with open('config.json', 'w') as f:
@@ -417,7 +409,7 @@ async def unregister(inter, user: str):
         return
 
     # Remove the user from the database (the config file)
-    config['users']['players'].remove(user)
+    config['users']['players'].pop(user)
 
     # Save the changes to the config file
     with open('config.json', 'w') as f:
@@ -439,11 +431,11 @@ async def unregister(inter, user: str):
 async def register_mapper(inter, mapper: str):
     
     # Get the mapper
-    current_mapper = osu_client.get_user(mapper)
+    current_mapper = await osu_client.get_user(mapper)
 
     # Check if the mapper exists
     if current_mapper is None:
-        await inter.response.send_message("Mapper not found!")
+        await inter.response.send_message("Mapper is not an osu! user!")
         return
     
     # Check if the mapper is already registered
@@ -452,7 +444,7 @@ async def register_mapper(inter, mapper: str):
         return
     
     # Add the mapper to the database (the config file)
-    config['users']['mappers'].append(mapper)
+    config['users']['mappers'][mapper] = current_mapper.id
 
     # Save the changes to the config file
     with open('config.json', 'w') as f:
@@ -479,7 +471,7 @@ async def unregister_mapper(inter, mapper: str):
         return
 
     # Remove the mapper from the database (the config file)
-    config['users']['mappers'].remove(mapper)
+    config['users']['mappers'].pop(mapper)
 
     # Save the changes to the config file
     with open('config.json', 'w') as f:
@@ -502,7 +494,7 @@ async def list_users(inter):
     await inter.response.defer()
 
     # Get the list of all registered users
-    users = config['users']['players']
+    users = list(config['users']['players'].keys())
 
     # Send a message to the user
     await inter.followup.send(f"Registered Users: {', '.join(users)}")
@@ -521,7 +513,7 @@ async def list_mappers(inter):
     await inter.response.defer()
 
     # Get the list of all registered mappers
-    mappers = config['users']['mappers']
+    mappers = list(config['users']['mappers'].keys())
 
     # Send a message to the user
     await inter.followup.send(f"Registered Mappers: {', '.join(mappers)}")
@@ -548,41 +540,31 @@ async def leaderboard(inter):
     for user in config['users']['players']:
 
         # Get the user
-        current_user = osu_client.get_user(user)
+        current_user = config['users']['players'][user]
 
         # Get the top 10 plays of each user
-        user_scores = osu_client.get_user_scores(current_user.id, type = "best", mode = "osu", limit = 10)
+        user_scores = await osu_client.get_user_scores(current_user, type = "best", mode = "osu", limit = 10)
 
-        # Check the top_plays list is empty
+        # Check if the top_plays list is empty
         if len(top_plays) == 0:
 
             # If this is the first user, set the top plays to their top plays
             top_plays = user_scores
         else:
 
-            # Otherwise, check if the user's top plays are better than the current top plays
-            for score in user_scores:
+            # Append all scores
+            top_plays.extend(user_scores)
 
-                # Check if the score is better than the current top 10
-                if score.pp > top_plays[-1].pp:
+            # Sort the top plays list by pp
+            top_plays.sort(key = lambda x: x.pp, reverse = True)
 
-                    # Add the score to the top plays list
-                    top_plays.append(score)
-
-                    # Sort the top plays list by pp
-                    top_plays.sort(key = lambda x: x.pp, reverse = True)
-
-                    # Remove the last score in the list
-                    top_plays.pop()
-                else:
-
-                    # All other scores will be lower than the current score, so they are not in the top 10
-                    break
+            # Keep only the top 10 plays
+            top_plays = top_plays[:10]
 
     ### PART 2: CREATE THE EMBED MESSAGE ###
 
     # Get all the beatmaps of the user_scores
-    user_beatmaps = osu_client.get_beatmaps([score.beatmap_id for score in top_plays])
+    user_beatmaps = await osu_client.get_beatmaps([score.beatmap_id for score in top_plays])
 
     # Get the max combos of the beatmaps
     beatmap_max_combos = {beatmap.id: beatmap.max_combo for beatmap in user_beatmaps}
@@ -643,4 +625,4 @@ async def leaderboard(inter):
     await inter.followup.send(embed=embed)
 
 # Run the bot
-client.run(config['discord']['token'])
+discord_client.run(config['discord']['token'])

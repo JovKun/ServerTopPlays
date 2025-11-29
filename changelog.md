@@ -2,6 +2,10 @@
 Official markdown file to log any changes and/or updates.
 Versions will be listed in reverse chronological order (latest version at the top)
 
+## Version 5.0
+- Optimized many methods, making listeners + Discord commands use less API calls per iteration, leading to faster run-time.
+- Fixed image getter for top play / beatmapset announcers, since `raw.jpg` doesn't exist anymore.
+
 ## Version 4.0
 - Added a `.gitignore` file to ignore `config.json`, which had sensitive information. This change made it possible to make this GitHub repository public instead of private
 
