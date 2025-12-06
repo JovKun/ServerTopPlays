@@ -79,7 +79,7 @@ async def event_looper():
 @discord_client.event
 async def on_message(message):
     if message.content.startswith('pp'):
-        await message.channel.send('pp for the pp god')
+        await message.channel.send('give pp for the pp god')
 
 #################
 ### FUNCTIONS ###
@@ -93,16 +93,16 @@ async def check_new_beatmaps():
     print("Checking new beatmaps...")
 
     # Get the new beatmaps of each user
-    for mapper in config['users']['mappers']:
+    for mapper in config['users']['mappers'].values():
 
         # Get the current_mapper
-        current_mapper = config['users']['mappers'][mapper]
+        current_mapper = await osu_client.get_user(mapper)
 
         # Debug
-        print(f"Checking {mapper}'s new beatmaps...")
+        print(f"Checking {current_mapper.username}'s new beatmaps...")
 
         # Get the user_beatmaps
-        user_beatmapsets = await osu_client.get_user_beatmaps(current_mapper, type = "pending", limit = 3)
+        user_beatmapsets = await osu_client.get_user_beatmaps(mapper, type = "pending", limit = 3)
 
         # Check if any of the user_beatmaps are made
         for beatmapset in user_beatmapsets:
@@ -171,16 +171,16 @@ async def check_top_plays():
     print("Checking top plays...")
 
     # Get the top 10 plays of each user
-    for user in config['users']['players']:
+    for user in config['users']['players'].values():
         
         # Get the user
-        current_user = config['users']['players'][user]
+        current_user = await osu_client.get_user(user)
 
         # Debug
-        print(f"Checking {user}'s top plays...")
+        print(f"Checking {current_user.username}'s top plays...")
 
         # Get top 10 plays of the user
-        user_scores = await osu_client.get_user_scores(current_user, type = "best", mode = "osu", limit = 10)
+        user_scores = await osu_client.get_user_scores(user, type = "best", mode = "osu", limit = 10)
 
         # Check if any of the user_scores are in the top 10
         for ind, score in enumerate(user_scores):
