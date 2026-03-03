@@ -125,17 +125,13 @@ async def check_new_beatmaps():
                     # If updated, then it could only be WIP or Pending
                     beatmap_status = ""
 
-                # Get whether the beatmap is submitted or just updated
-                beatmap_status_2 = ""
-
-                if beatmapset.submitted_date.timestamp() > config['last_checked']:
-                    beatmap_status_2 = "submitted a new"
-                else:
-                    beatmap_status_2 = "updated their"                
+                # If the beatmap submission date is before the last checked time, then break the loop (means that the beatmap was updated and not submitted)
+                if beatmapset.submitted_date.timestamp() <= config['last_checked']:
+                    break
 
                 # Print a simple embed message
                 embed = discord.Embed(
-                    title = f"**{current_mapper.username} just {beatmap_status_2} beatmap!**",
+                    title = f"**{current_mapper.username} just submitted a beatmap!**",
                     description = f"**[{beatmapset.title}](https://osu.ppy.sh/beatmapsets/{beatmapset.id})**\nStatus: {beatmap_status}\nHypes: {beatmapset.hype.current}/{beatmapset.hype.required}\n{beatmapset.favourite_count} :heart: {beatmapset.play_count} :arrow_forward:",
                     color = 0x158ddc,
                     timestamp = datetime.datetime.now()
