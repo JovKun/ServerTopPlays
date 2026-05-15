@@ -80,6 +80,8 @@ async def event_looper():
 async def on_message(message):
     if message.content.startswith('pp'):
         await message.channel.send('give pp for the pp god')
+    elif message.content.startswith('hi'):
+        await message.channel.send('whats good uncle')
 
 #################
 ### FUNCTIONS ###
@@ -143,7 +145,7 @@ async def check_new_beatmaps():
                     # Add the field to the embed
                     embed.add_field(
                         name=f"**{diff.version}**\n{diff.difficulty_rating:.2f}★",
-                        value="\u200B",
+                        value="\u200B", # Invisible name for spacing
                         inline=True
                     )
 
@@ -170,7 +172,7 @@ async def check_top_plays():
     for user in config['users']['players'].values():
         
         # Get the user
-        current_user = await osu_client.get_user(user)
+        current_user = await osu_client.get_user(user, mode = "osu")
 
         # Debug
         print(f"Checking {current_user.username}'s top plays...")
@@ -247,7 +249,7 @@ async def check_top_plays():
 
                 # Add another field to show the link to the play
                 embed.add_field(
-                    name="\u200B",
+                    name="\u200B", # Invisible name for spacing
                     value=f"[Link to Score](https://osu.ppy.sh/scores/{score.id})",
                 )
 
@@ -280,7 +282,7 @@ async def top(inter, user: str):
     await inter.response.defer()
 
     # Get the user
-    current_user = await osu_client.get_user(user)
+    current_user = await osu_client.get_user(user, mode="osu")
 
     # Check if the user exists
     if current_user is None:
@@ -344,7 +346,7 @@ async def top(inter, user: str):
 
         # Add the field to the embed
         embed.add_field(
-            name="\u200b",
+            name="\u200b", # Invisible name for spacing
             value=f"#{ind + 1} - **[{score.beatmapset.title} [{score.beatmap.version}]]({score.beatmap.url})** [{star_rate}★]\n{user_rank} **{user_pp}pp** ({user_accuracy}%) [**{score.max_combo}x**/{user_score_max_combos[score.beatmap_id]}x] {count_miss} \n+**{user_mods}** <t:{int(score.ended_at.timestamp())}:R>",
             inline=False
         )
@@ -365,7 +367,7 @@ async def top(inter, user: str):
 async def register(inter, user: str):
 
     # Get the user
-    current_user = await osu_client.get_user(user)
+    current_user = await osu_client.get_user(user, mode = "osu")
 
     # Check if the user exists
     if current_user is None:

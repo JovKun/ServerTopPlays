@@ -2,6 +2,9 @@
 Official markdown file to log any changes and/or updates.
 Versions will be listed in reverse chronological order (latest version at the top)
 
+## Version 5.1
+- Fixed a bug where a user's statistics that is shown in the embeds will be of their main mode and not osu!standard.
+
 ## Version 5.0
 - Optimized many methods, making listeners + Discord commands use less API calls per iteration, leading to faster run-time.
 - Fixed image getter for top play / beatmapset announcers, since `raw.jpg` doesn't exist anymore.
