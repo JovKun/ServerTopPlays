@@ -2,6 +2,10 @@
 Official markdown file to log any changes and/or updates.
 Versions will be listed in reverse chronological order (latest version at the top)
 
+## Version 5.2
+- Added lint + pytest workflow to GitHub repository
+- Added initial unit tests to appease pytest
+
 ## Version 5.1
 - Fixed a bug where a user's statistics that is shown in the embeds will be of their main mode and not osu!standard.
 
