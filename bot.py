@@ -122,10 +122,6 @@ async def check_new_beatmaps():
                     beatmap_status = "WIP"
                 elif beatmapset.status == 0:
                     beatmap_status = "Pending"
-                else:
-
-                    # If updated, then it could only be WIP or Pending
-                    beatmap_status = ""
 
                 # If the beatmap submission date is before the last checked time, then break the loop (means that the beatmap was updated and not submitted)
                 if beatmapset.submitted_date.timestamp() <= config['last_checked']:
