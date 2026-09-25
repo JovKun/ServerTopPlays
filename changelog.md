@@ -2,25 +2,41 @@
 Official markdown file to log any changes and/or updates.
 Versions will be listed in reverse chronological order (latest version at the top)
 
-## Version 5.2
+## Version 1.0.0
+- Reimplemented the bot and refactored the whole project file
+    - Added a FastAPI backend for interacting with ServerTopPlays data through a RESTful API
+    - Added PostgreSQL database support to replace previous JSON-based storage
+    - Added SQLAlchemy's asynchronous ORM for database access
+    - Added Alembic for database schema migrations
+    - Added seperate database tables for
+        - Players
+        - Mappers
+    - Added repository modules for database operations
+    - Seperated/renamed Discord commands with `/register_player` and `/register_mapper`
+    - Added username synchronization for when a user changes their name on osu!
+    - Moved secrets from the JSON to an `.env`
+- Removed the obsolete bot implementation
+- Removed the old monolithic bot structure, seperating methods into several files in the `bot/` directory 
+
+## Version 0.5.2
 - Added lint + pytest workflow to GitHub repository
 - Added initial unit tests to appease pytest
 
-## Version 5.1
-- Fixed a bug where a user's statistics that is shown in the embeds will be of their main mode and not osu!standard.
+## Version 0.5.1
+- Fixed a bug where a user's statistics that is shown in the embeds will be of their main mode and not osu!standard
 
-## Version 5.0
-- Optimized many methods, making listeners + Discord commands use less API calls per iteration, leading to faster run-time.
-- Fixed image getter for top play / beatmapset announcers, since `raw.jpg` doesn't exist anymore.
+## Version 0.5.0
+- Optimized many methods, making listeners + Discord commands use less API calls per iteration, leading to faster run-time
+- Fixed image getter for top play / beatmapset announcers, since `raw.jpg` doesn't exist anymore
 
-## Version 4.0
+## Version 0.4.0
 - Added a `.gitignore` file to ignore `config.json`, which had sensitive information. This change made it possible to make this GitHub repository public instead of private
 
-## Version 3.4
+## Version 0.3.4
 - Recalled calculating star rating for plays with mods since the osu! API doesn't support star rating calculation for mods
 - Simplified event looper
 
-## Version 3.3
+## Version 0.3.3
 - Added more stats to `check_new_beatmaps`
     - Current and required hype count
     - Favourite count
@@ -30,15 +46,15 @@ Versions will be listed in reverse chronological order (latest version at the to
         - Star Rating
 - Added feature for calculating star rating for plays with mods
 
-## Version 3.2
+## Version 0.3.2
 - redid `event_looper`, which now uses `discord.ext.tasks` to loop instead of an infinite while loop with a `time.sleep`
     - this creates an official event loop, which now finally fixes the bug of printing an announcement score multiple times (from Version 2.21)
 - deleted `run_blocking`, since it's only use is to run functions that require arguments
 
-## Version 3.1
+## Version 0.3.1
 - `check_new_beatmaps` now announces in a different channel than `check_top_plays` (in #beatmaps rather than #server-top-plays)
 
-## Version 3.0
+## Version 0.3.0
 - Added several new slash commands
     - `/unregister` to unregister a user to be tracked by the bot
     - `/register_mapper` to register a mapper to be tracked by the bot for beatmaps
@@ -51,58 +67,58 @@ Versions will be listed in reverse chronological order (latest version at the to
         - Updated or Uploaded
         - Status (either WIP or Pending currently)
 
-## Version 2.3
+## Version 0.2.3
 - Fixed issue from previous version that now turned into not printing at all
     - Ran `channel.send` through a `create_task` function, which allows it to run in a non-async function
 
-## Version 2.23
+## Version 0.2.23
 - Finally fixed the issue where the bot prints an announcement score multiple times
     - The function containing `asyncio.sleep` was blocking the bot, so it needed to be rewritten in order to run in a non-blocking way
     - Commands are now once again usable when the bot is running `check_top_plays`
     - Changed `check_top_plays` to run every 2 minutes instead of every 1 minute
 
-## Version 2.22
+## Version 0.2.22
 - Fixed issue where the bot prints an announcement score multiple times
     - `asyncio.sleep` wasn't being awaited for some reason
 
-## Version 2.21
+## Version 0.2.21
 - Monitoring bug where the bot prints an announcement score multiple times
 - Fixed issue where Discord displays multiple slash commands for `/top`
 - Fixed issue where a no mod play in osu!lazer is shown as `+**` instead of `+NM` for announcement plays
 
-## Version 2.2
+## Version 0.2.2
 - Redid scheduling function so that it uses `asyncio` instead of `scheduler` due to the latter being a blocking function
 - Changed main listener to run every 1 minute instead of every 5 minutes
     - This should be fine due to the amount of users
 
-## Version 2.1
+## Version 0.2.1
 - Fixed hyperlink for scores in announcements due to it not showing up properly
 - Added `image` to announcement embed, showing the background image of the beatmapset
 
-## Version 2.0
+## Version 0.2.0
 - Added `/leaderboard`
     - Prints the top 10 plays of all the registered users in the server
         - Each play prints the same score stats as `top()`, but doesn't prints any user stats
     - A server leaderboard
 
-## Version 1.2
+## Version 0.1.2
 - Fixed issue of the score link not being a hyperlink by moving the link from the footer to an additional field in the embed
 - Fixed issue where the announcement's pp is missing the "pp"
 
-## Version 1.1
+## Version 0.1.1
 - Announcing feature now shows index of the top play, ie. `Personal Best #5`
 - Added link to score to footer
 - Fixed issue where the main listener `check_top_plays()` breaks after encountering a top play that has a miss count greater than 0
 - Fixed issue where Discord displays multiple slash commands for `/top`
 - Fixed issue where a no mod play in osu!lazer is shown as `+**` instead of `+NM`
 
-## Version 1.0
+## Version 0.1.0
 - Added the main feature `check_top_plays()`
     - Main listener for announcing recent top 10 plays for any user registered
         - Gets the top 10 plays of all users and puts any of them in an embed if the play was made after the `last_checked` timestamp
         - Prints the same stats as `top()`
 
-## Version 0.2
+## Version 0.0.2
 - Added `/register`
     - Adds a user to be tracked by the bot, which will be used later by the announcment feature (to be implemented)
 - Fixed issue where max combo for a beatmap is mismatched
@@ -110,7 +126,7 @@ Versions will be listed in reverse chronological order (latest version at the to
 - Fixed issue where a play's pp is missing the "pp"
 - Fixed issue where the user's total pp is missing the "pp"
 
-## Version 0.1
+## Version 0.0.1
 - Added `/top`
     - Prints the top ten plays of a given parameter `user`
     - Prints the following user stats

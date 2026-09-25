@@ -4,4 +4,4 @@ This is a Discord bot with the sole purpose of announcing the top osu! plays of 
 View `documentation.md` for more information on the bot.
 View `changelog.md` for the programming process and the latest version's features.
 
-This bot is not for download since running this code requires setting up your own Discord bot.
+This bot might be updated to support inter-server deployment. Check back soon!
